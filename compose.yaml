@@ -7,5 +7,5 @@ services:
     network_mode: "host"   
     cap_add:
       - NET_ADMIN
-    #environment:
+    #environment: # uncomment this to get more debug info during setup
     #  DEBUG: 1
