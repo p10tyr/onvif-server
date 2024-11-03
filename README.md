@@ -55,9 +55,14 @@ Downalod the `config.yaml` file. This is the config on how to connect to a RTSP 
 ## Run compose
 
 ```bash
+# For example, compose.yaml and config.yaml in this directory
 ~$ cd /onvif-to-rtsp
-# compose.yaml and config.yaml in this directory
+
+# Run this command to see the terminal output and any debug messages. CTRL+C to stop
 ~/onvif-to-rtsp$ sudo docker compose up
+
+# If all is good then run docker compose and detach so it runs in background
+~/onvif-to-rtsp$ sudo docker compose up -d
 ```
 
 ## Wrapping an RTSP Stream
