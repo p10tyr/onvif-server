@@ -1,11 +1,13 @@
 onvif:
-  - mac: aa:aa:aa:aa:aa:a1
+  - name: BulletCam
+    uuid: ae426b06-36aa-4c89-84fb-0000000000a1
+    dev: enp2s0 #eth0
+    ipv4: 192.168.1.12
+    mac: aa:aa:aa:aa:aa:a1
     ports:
       server: 8081
       rtsp: 8554
-      snapshot: 8580
-    name: Bullet1
-    uuid: ae426b06-36aa-4c89-84fb-7a6eb15ff734
+      snapshot: 8080
     highQuality:
       rtsp: /Streaming/Channels/101/
       snapshot: /ISAPI/Streaming/Channels/101/picture
@@ -19,3 +21,25 @@ onvif:
       ports:
         rtsp: 554
         snapshot: 80
+  # - name: DoorCam
+  #   uuid: ae426b06-36aa-4c89-84fb-0000000000a2
+  #   dev: enp2s0 #eth0
+  #   ipv4: 192.168.1.14
+  #   mac: aa:aa:aa:aa:aa:a2
+  #   ports:
+  #     server: 8081
+  #     rtsp: 8554
+  #     snapshot: 8080
+  #   highQuality:
+  #     rtsp: /Streaming/Channels/101/
+  #     snapshot: /ISAPI/Streaming/Channels/101/picture
+  #     width: 2048
+  #     height: 1536
+  #     framerate: 15
+  #     bitrate: 3072
+  #     quality: 4
+  #   target:
+  #     hostname: 192.168.1.187
+  #     ports:
+  #       rtsp: 554
+  #       snapshot: 80

@@ -10,12 +10,10 @@ const fs = require('fs');
 const logger = require('simple-node-logger').createSimpleLogger();
 
 const parser = new argparse.ArgumentParser({
-    description: 'Virtual Onvif Server'
+    description: 'Virtual RTSP to ONVIF proxy'
 });
 
 parser.add_argument('-v', '--version', { action: 'store_true', help: 'show the version information' });
-parser.add_argument('-cc', '--create-config', { action: 'store_true', help: 'create a new config' });
-parser.add_argument('-d', '--debug', { action: 'store_true', help: 'show onvif requests' });
 parser.add_argument('config', { help: 'config filename to use', nargs: '?'});
 
 let args = parser.parse_args();
@@ -26,46 +24,11 @@ if (args) {
         return;
     }
 
-    if (args.debug){
+    if (process.env.DEBUG){
         logger.setLevel('trace');
     }
 
-    if (args.create_config) {
-        let mutableStdout = new stream.Writable({
-            write: function(chunk, encoding, callback) {
-                if (!this.muted || chunk.toString().includes('\n'))
-                    process.stdout.write(chunk, encoding);
-                callback();
-            }
-        });
-
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: mutableStdout,
-            terminal: true
-        });
-
-        mutableStdout.muted = false;
-        rl.question('Onvif Server: ', (hostname) => {
-            rl.question('Onvif Username: ', (username) => {
-                mutableStdout.muted = true;
-                process.stdout.write('Onvif Password: ');
-                rl.question('', (password) => {
-                    logger.info('Generating config ...');
-                    configBuilder.createConfig(hostname, username, password).then((config) => {
-                        if (config) {
-                            logger.info('# ==================== CONFIG START ====================');
-                            logger.info(yaml.stringify(config));
-                            logger.info('# ===================== CONFIG END =====================');
-                        } else
-                            logger.info('Failed to create config!');
-                    });
-                    rl.close();
-                });
-            });
-        });
-
-    } else if (args.config) {
+    if (args.config) {
         let configData;
         try {
             configData = fs.readFileSync(args.config, 'utf8');
@@ -82,21 +45,22 @@ if (args) {
             config = yaml.parse(configData);
         } catch (error) {
             logger.info('Failed to read config, invalid yaml syntax.')
-            return -1;
+            return -1
         }
 
         let proxies = {};
-
+        let proxyCounter = 0;
         for (let onvifConfig of config.onvif) {
-            let server = onvifServer.createServer(onvifConfig, args.debug);
+            let server = onvifServer.createServer(onvifConfig, proxyCounter);
+
             if (server.getHostname()) {
-                logger.info(`Starting virtual onvif server for ${onvifConfig.name} on ${server.getHostname()}:${onvifConfig.ports.server} ...`);
-                server.startServer();
-                server.startDiscovery();
-                if (args.debug)
-                    server.enableDebugOutput();
-                logger.info('  Started!');
-                logger.info('');
+                logger.info(`Starting virtual onvif server for ${onvifConfig.name} on ${server.getHostname()}`) //:${onvifConfig.ports.server} ...`);
+                server.startServer()
+                server.startDiscovery()
+                if (process.env.DEBUG)
+                    server.enableDebugOutput()
+                logger.info('  Started!')
+                logger.info('')
 
                 if (!proxies[onvifConfig.target.hostname])
                     proxies[onvifConfig.target.hostname] = {}
@@ -109,6 +73,7 @@ if (args) {
                 logger.error(`Failed to find IP address for MAC address ${onvifConfig.mac}`)
                 return -1;
             }
+            proxyCounter++
         }
         
         for (let destinationAddress in proxies) {
@@ -127,57 +92,3 @@ if (args) {
 
     return 0;
 }
-
-
-/*
-
-// Setup Virtal Interfaces
-ip link add macvlan-241 link br0 type macvlan mode bridge
-ip link set macvlan-241 address 7a:07:57:78:d0:e1
-ip addr add 192.168.1.241 dev macvlan-241
-ip link set macvlan-241 up
-
-ip link add macvlan-242 link br0 type macvlan mode bridge
-ip link set macvlan-242 address fa:93:6e:ee:0a:8d
-ip addr add 192.168.1.242 dev macvlan-242
-ip link set macvlan-242 up
-
-ip link add macvlan-243 link br0 type macvlan mode bridge
-ip link set macvlan-243 address 1e:84:0d:b3:97:ab
-ip addr add 192.168.1.243 dev macvlan-243
-ip link set macvlan-243 up
-
-ip link add macvlan-244 link br0 type macvlan mode bridge
-ip link set macvlan-244 address 22:63:cc:4c:9a:7b
-ip addr add 192.168.1.244 dev macvlan-244
-ip link set macvlan-244 up
-
-sysctl -w net.ipv4.conf.all.arp_ignore=1
-sysctl -w net.ipv4.conf.all.arp_announce=2
-
-
-// Revert all changes
-ip link set macvlan-241 down
-ip addr del 192.168.1.241 dev macvlan-241
-ip link del macvlan-241
-
-ip link set macvlan-242 down
-ip addr del 192.168.1.242 dev macvlan-242
-ip link del macvlan-242
-
-ip link set macvlan-243 down
-ip addr del 192.168.1.243 dev macvlan-243
-ip link del macvlan-243
-
-ip link set macvlan-244 down
-ip addr del 192.168.1.244 dev macvlan-244
-ip link del macvlan-244
-
-sysctl -w net.ipv4.conf.all.arp_ignore=0
-sysctl -w net.ipv4.conf.all.arp_announce=0
-
-
-https://serverfault.com/questions/682311/virtual-interfaces-with-different-mac-addresses
-*/
-
-

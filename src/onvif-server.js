@@ -7,6 +7,7 @@ const url = require('url');
 const fs = require('fs');
 const os = require('os');
 const logger = require('simple-node-logger').createSimpleLogger();
+const { execSync } = require('child_process');
 
 Date.prototype.stdTimezoneOffset = function() {
     let jan = new Date(this.getFullYear(), 0, 1);
@@ -20,6 +21,7 @@ Date.prototype.isDstObserved = function() {
 
 function getIp4FromMac(macAddress) {
     let networkInterfaces = os.networkInterfaces();
+
     for (let interface in networkInterfaces){
      logger.trace(interface);
         for (let network of networkInterfaces[interface]){
@@ -32,15 +34,51 @@ function getIp4FromMac(macAddress) {
 }
 
 class OnvifServer {
-    constructor(config, isDebug) {
+    constructor(config, proxyCounter) {
         this.config = config;
 
-        if (isDebug === true){
+        if (process.env.DEBUG){
             logger.setLevel('trace');
         }
 
         if (!this.config.hostname)
             this.config.hostname = getIp4FromMac(this.config.mac);
+
+        if (!this.config.hostname)
+        {
+            const vlanName = `rtsp2onvif_${proxyCounter}`
+            logger.info(`add ${vlanName}`)
+            try {
+                const stdout = execSync(`ip link add ${vlanName} link ${this.config.dev} type macvlan mode bridge`)
+                logger.debug(stdout)
+            } catch (error) {
+                logger.debug(error.message)
+            }
+           
+            logger.info(`set ${vlanName} MAC`)
+            try {
+                execSync(`ip link set ${vlanName} address ${this.config.mac}`)
+            } catch (error) {
+                logger.debug(error.message)
+            }
+
+            logger.info(`set ${vlanName} IPv4`)
+            try {
+                execSync(`ip addr add ${this.config.ipv4} dev ${vlanName}`)
+            } catch (error) {
+                logger.debug(error.message)
+            }
+
+            logger.info(`set ${vlanName} UP`)
+            try {
+                execSync(`ip link set ${vlanName} up`)
+            } catch (error) {
+                logger.debug(error.message)
+            }
+
+            if (!this.config.hostname)
+                this.config.hostname = getIp4FromMac(this.config.mac);
+        }
 
         this.videoSource = {
             attributes: {
@@ -277,7 +315,7 @@ class OnvifServer {
                 
                     GetDeviceInformation: (args) => {
                         return {
-                            Manufacturer: 'Onvif',
+                            Manufacturer: 'rtsp-2-onvif',
                             Model: `${this.config.name}`,
                             FirmwareVersion: '1.0.0',
                             SerialNumber: `${this.config.name.replace(' ', '_')}-0000`,
@@ -420,7 +458,7 @@ class OnvifServer {
                                         <d:Scopes>
                                             onvif://www.onvif.org/type/video_encoder
                                             onvif://www.onvif.org/type/ptz
-                                            onvif://www.onvif.org/hardware/Onvif
+                                            onvif://www.onvif.org/hardware/onvif
                                             onvif://www.onvif.org/name/${this.config.name}
                                             onvif://www.onvif.org/location/
                                         </d:Scopes>
