@@ -1,11 +1,11 @@
 # Virtual Onvif Proxy
 This is a simple virtual ONVIF proxy that was originally developed by Daniela Hase to work around limitations in the third party support of Unifi Protect.
-It takes an existing RTSP stream and builds a virtual Daniela Hase device for it so the stream can be consumed by Daniela Hase compatible clients.
+It takes an existing RTSP stream and builds a virtual ONVIF device for it so the stream can be consumed by ONVIF compatible clients.
 
 Currently only Onvif Profile S (Live Streaming) is implemented with limited functionality.
 
 ## Credits
-Thank you Daniela Hase for just randomly dropping this amazing code to the public!
+Thank you Daniela Hase for dropping the amazing code to the public!
 Original repository https://github.com/daniela-hase/onvif-server
 
 It has truly inspired me and gave me so many ideas! 
@@ -18,12 +18,14 @@ Unifi Protect seems to only support h264 video streams at the moment. So ensure 
 
 At the time of writing this, version 5.0.34 of Unifi Protect unfortunately has some limitations and does only support cameras with a single high- and low quality stream. Unfortunately video recorders that output multiple cameras (e.g. Hikvision / Dahua XVR) or cameras with multiple internal cameras are not properly supported.
 
-
 Your Virtual Onvif Devices should now automatically show up for adoption in Unifi Protect as the name specified in the config. The username and password are the same as on the real Onvif device.
 
 ---
 
 # Roadmap
+- Simplyfy docker - DONE
+  - Only run in Docker - DONE
+  - Auto virtual MAC registrations - DONE
 - Learn about the ONVIF Profile S
   - Implement snapshot functionality?
   - Implement some other features
