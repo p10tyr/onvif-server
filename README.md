@@ -24,11 +24,6 @@ Your Virtual Onvif Devices should now automatically show up for adoption in Unif
 ---
 
 # Roadmap
-- Make it work in docker
-  - Simplify the network configuration
-  - Add more explanations into stream detection
-  - a few more things around docker in my head that will make things easier
-- Create an Action pipeline
 - Learn about the ONVIF Profile S
   - Implement snapshot functionality?
   - Implement some other features
@@ -40,17 +35,49 @@ Create a directory locally where you will keep your compose and config files.
 
 ## Download the compose.yaml file 
 
-- This file is configured to run 1 node with MAC `aa:aa:aa:aa:aa:a1`. 
-- You may just need to adjust the ipv4_address to a free address on your network
-- adjust `driver_opts: parent: enp2s0` replace enp2so with your adapter name. eg eth0
-- adjust subnet and gateway to match that of your existing network, eg `10.0.0.0/24` ; `10.0.0.0.1` 
+You don't really have to change anything in this file.
+
+Some properties
+- `volumnes: ./config.yaml:/onvif.yaml` - where your config file is. Next step
+- `cap_add: NET_ADMIN` - Required to create virtual networks based on config file
+- `environment: DEBUG:1` - Uncommnet if you need more debug logs to show up
+
 
 ## Downlaod the config file
 
-Downalod the `config.yaml` file. This is the config on how to connect to a RTSP stream. No username of passwords required here!
+Download the `config.yaml` file. This is the config that creates virtual proxies and connects them RTSP streams.
 
-- The MAC address here should match the one of the 1st node in compose file. Dont need to change it.
-- All the other settings there relate to your camera and should be self explanitory
+> No username of passwords required here!
+
+IP and MAC addresses will be added automatically to the dev device you specify.
+Make sure they are avaiable and reserved as static in your router
+
+```yaml
+onvif:
+  - name: BulletCam                               # A user define name that will show up in the consumer device
+    uuid: ae426b06-36aa-4c89-84fb-0000000000a1    # A randomly chosen UUID (see below)
+    dev: enp2s0 #eth0                             # Network interface to add virtual IP's too. use ip addr to find your name
+    ipv4: 192.168.1.12                            # The available IPv4 on your network. best reserve static ip for this
+    mac: aa:aa:aa:aa:aa:a1                        # The virtual MAC address for the server to run on
+    ports:                                        # Virtual server ports. No need to change these.
+      server: 8081
+      rtsp: 8554
+      snapshot: 8080
+    highQuality:
+      rtsp: /Streaming/Channels/101/                    # The RTSP Path
+      snapshot: /ISAPI/Streaming/Channels/101/picture   # Snapshot path - not working yet
+      width: 2048                                       # The Video Width
+      height: 1536                                      # The Video Height
+      framerate: 15                                     # The Video Framerate/FPS
+      bitrate: 3072                                     # The Video Bitrate in kb/s
+      quality: 4                                        # Quality, leave this as 4 for the high quality stream.
+    target:
+      hostname: 192.168.1.187                      # Your cameras IPv4 address
+      ports:
+        rtsp: 554                                  # Your cameras RTSP port. Typically 554
+        snapshot: 80                               # Cameras non https port for snapshots
+```
+
 
 ## Run compose
 
@@ -83,29 +110,6 @@ Your RTSP url may contain a username and password - those should NOT be included
 Instead you will have to enter them in the software that you plan on consuming this Onvif camera in, for example during adoption in Unifi Protect.
 
 Next you need to figure out the resolution and framerate for the stream. If you don't know them, you can use VLC to open the RTSP stream and check the _Media Information_ (Window -> Media Information) for the _"Video Resolution"_ and _"Frame rate"_ on the _"Codec Details"_ page, and the _"Stream bitrate"_ on the _"Statistics"_ page. The bitrate will fluctuate quite a bit most likely, so just pick a number that is close to it (e.g. 1024, 2048, 4096 ..).
-
-Let's assume the resolution is 1920x1080 with 30 fps and a bitrate of 1024 kb/s, then the `config.yaml` for that stream would look as follows:
-
-```yaml
-onvif:
-  - mac: a2:a2:a2:a2:a2:a1                        # The virtual MAC address for the server to run on
-    ports:
-      server: 8081                                # The port for the server to run on
-      rtsp: 8554                                  # The port for the stream passthrough, leave this at 8554
-    name: FrontDoor                               # A user define name that will show up in the consumer device
-    uuid: 1714a629-ebe5-4bb8-a430-c18ffd8fa5f6    # A randomly chosen UUID (see below)
-    highQuality:
-      rtsp: /Streaming/Channels/101/              # The RTSP Path
-      width: 1920                                 # The Video Width
-      height: 1080                                # The Video Height
-      framerate: 30                               # The Video Framerate/FPS
-      bitrate: 1024                               # The Video Bitrate in kb/s
-      quality: 4                                  # Quality, leave this as 4 for the high quality stream.
-    target:
-      hostname: 192.168.1.32                      # The Hostname of the RTSP stream
-      ports:
-        rtsp: 554                                 # The Port of the RTSP stream
-```
 
 You can either randomly change a few numbers of the UUID, or use a UUIDv4 generator[^3].
 
