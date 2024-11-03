@@ -1,28 +1,33 @@
 services:
-  rtsp-to-onvif:
+  rtsp-to-onvif-01:
     image: kulasolutions/rtsp-to-onvif:latest
-    #stdin_open: true
-    #tty: true
     volumes:
       - ./config.yaml:/onvif.yaml
     ports:
-      - "8081"
-      - "8554"
-      - "8580"
+      - "8554:8554" # RTSP proxy port
+      #- "8081:8081" # HTTP port for server - not implemented yet
+      #- "8580:8580" # Snapshot proxy port - not implemented yet
+    mac_address: aa:aa:aa:aa:aa:a1
     networks:
-      onvif_proxy_1:
+      onvif_macvlan:
         ipv4_address: 192.168.1.12
-        #mac_address: aa:aa:aa:aa:aa:a1
-        
+#  rtsp-to-onvif-02:
+#    image: kulasolutions/rtsp-to-onvif:latest
+#    volumes:
+#      - ./config2.yaml:/onvif.yaml
+#    ports:
+#      - "9554" # RTSP proxy port
+#    mac_address: aa:aa:aa:aa:aa:a2
+#    networks:
+#      onvif_macvlan:
+#        ipv4_address: 192.168.1.14
 
 networks:
-  onvif_proxy_1:
+  onvif_macvlan:
     driver: macvlan
     driver_opts:
       parent: enp2s0
     ipam:
       config:
         - subnet: "192.168.1.0/24"
-          gateway: "192.168.1.1"
-          
-          
+          gateway: "192.168.1.1"       
