@@ -32,15 +32,30 @@ Your Virtual Onvif Devices should now automatically show up for adoption in Unif
   - Implement some other features
 
 
-# Docker
-A prebuilt docker image can be found in the packages section of this repository.
-All you need to do is to mount your `config.yaml` to `/onvif.yaml` inside the container.
+# Docker Compose
 
-Example of running the image in a temporary container:
+Create a directory locally where you will keep your compose and config files.
+
+## Download the compose.yaml file 
+
+- This file is configured to run 1 node with MAC `aa:aa:aa:aa:aa:a1`. 
+- You may just need to adjust the ipv4_address to a free address on your network
+- adjust `driver_opts: parent: enp2s0` replace enp2so with your adapter name. eg eth0
+- adjust subnet and gateway to match that of your existing network, eg `10.0.0.0/24` ; `10.0.0.0.1` 
+
+## Downlaod the config file
+
+Downalod the `config.yaml` file. This is the config on how to connect to a RTSP stream. No username of passwords required here!
+
+- The MAC address here should match the one of the 1st node in compose file. Dont need to change it.
+- All the other settings there relate to your camera and should be self explanitory
+
+## Run compose
+
 ```bash
-docker run --rm -it -v /path/to/my/config.yaml:/onvif.yaml kulasolutions/rtsp-to-onvif:latest
+~$ cd /onvif-to-rtsp
+~/onvif-to-rtsp$ sudo docker compose up
 ```
-
 
 ## Wrapping an RTSP Stream
 This tool is  used to create Onvif devices from regular RTSP streams by creating the following configuration
