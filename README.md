@@ -1,10 +1,15 @@
 # Virtual Onvif Proxy
-This is a simple virtual ONVIF proxy that was originally developed by Daniela Hase to work around limitations in the third party support of Unifi Protect.
+This is a simple virtual ONVIF proxy that was originally developed by Daniela Hase in NodeJS to work around limitations in the third party support of Unifi Protect.
 It takes an existing RTSP stream and builds a virtual ONVIF device for it so the stream can be consumed by ONVIF compatible clients.
 
-Currently only Onvif Profile S (Live Streaming) is implemented with limited functionality.
+This repository has added features and enchanched the original code by ...
+- making it a pure docker appliance (docker-compose)
+- only deals with RSTP to ONVIF proxying
+- auto registers multiple virtual addresses from inside docker
+- more to come...
 
-Non ONVIF camera adopted in Unify Protect 
+
+Non ONVIF, h264 RTSP Camera adopted in Unify Protect 
 
 ![image](https://github.com/user-attachments/assets/7fa9ab55-7830-4602-a1e5-d1ad9184117e)
 
