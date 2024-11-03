@@ -8,6 +8,7 @@ const fs = require('fs');
 const os = require('os');
 const logger = require('simple-node-logger').createSimpleLogger();
 const { execSync } = require('child_process');
+const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
 
 Date.prototype.stdTimezoneOffset = function() {
     let jan = new Date(this.getFullYear(), 0, 1);
@@ -47,17 +48,10 @@ class OnvifServer {
         if (!this.config.hostname)
         {
             const vlanName = `rtsp2onvif_${proxyCounter}`
-            logger.info(`add ${vlanName}`)
+            logger.info(`add ${vlanName} MAC`)
             try {
-                const stdout = execSync(`ip link add ${vlanName} link ${this.config.dev} type macvlan mode bridge`)
+                const stdout = execSync(`ip link add ${vlanName} link ${this.config.dev} address ${this.config.mac} type macvlan mode bridge`)
                 logger.debug(stdout)
-            } catch (error) {
-                logger.debug(error.message)
-            }
-           
-            logger.info(`set ${vlanName} MAC`)
-            try {
-                execSync(`ip link set ${vlanName} address ${this.config.mac}`)
             } catch (error) {
                 logger.debug(error.message)
             }
@@ -75,6 +69,10 @@ class OnvifServer {
             } catch (error) {
                 logger.debug(error.message)
             }
+
+            logger.info(``)
+            logger.info(`Waiting 1 minute for new virtual interface to register MAC`)
+            sleep(60 * 1000).then(() => {});
 
             if (!this.config.hostname)
                 this.config.hostname = getIp4FromMac(this.config.mac);
