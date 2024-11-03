@@ -56,6 +56,7 @@ Downalod the `config.yaml` file. This is the config on how to connect to a RTSP 
 
 ```bash
 ~$ cd /onvif-to-rtsp
+# compose.yaml and config.yaml in this directory
 ~/onvif-to-rtsp$ sudo docker compose up
 ```
 
@@ -107,64 +108,6 @@ If you have a separate low-quality RTSP stream available, fill in the informatio
 
 > [!NOTE]
 > Since we don't provide a snapshot url you will onyl see the Onvif logo in certain places in Unifi Protect where it does not show the livestream.
-
-# Troubleshooting
-
-- **All cameras show the same video stream in Unifi Protect**
-
-Unifi Protect identifies cameras by their MAC address - if multiple cameras have the same MAC address they will be treated as the same.
-It is possible your system is configured for all virtual network interfaces to report the same MAC address, to prevent this run these commands[^4]:
-```bash
-sudo sysctl -w net.ipv4.conf.all.arp_ignore=1
-sudo sysctl -w net.ipv4.conf.all.arp_announce=2
-```
-
-- **Error: Wsse authorized time check failed.**
-
-Try updating the date/time on your Onvif device to the current time.
-
-- **I only see snapshots, no live-stream.**
-
-Are you capturing the RTSP streams of your cameras elsewhere already? It is possible that you hit the maximum concurrent RTSP streams that your camera supports.
-
-
-## Virtual Networks
-NB - Old instrucions that wont apply to docker version, Just keeping around as notes
-
-To properly work with Unifi Protect each virtual Onvif device needs to have its own unique MAC address.
-The easiest way to achieve this is by creating virtual network interfaces with the MacVLAN[^1] network driver:
-```bash
-ip link add [NAME] link [INTERFACE] address [MAC_ADDRESS] type macvlan mode bridge
-```
-
-> [!TIP]
-> It is recommended to reserve fixed IP addresses in your DHCP server for your virtual networks.
-
-Replace `[NAME]` with a name of your choosing (e.g. `onvif-proxy-1`) and `[MAC_ADDRESS]` with a locally administered MAC address[^2] (e.g. `a2:a2:a2:a2:a2:a1`) and `[INTERFACE]` with the name of the parent network interface (e.g. `eth0`).
-
-
-## Example to create four virtual networks:
-```bash
-# Setup the first virtual network with name "onvif-proxy-1" and MAC address "a2:a2:a2:a2:a2:a1":
-sudo ip link add onvif-proxy-1 link eth0 address a2:a2:a2:a2:a2:a1 type macvlan mode bridge
-
-# Setup the first virtual network with name "onvif-proxy-2" and MAC address "a2:a2:a2:a2:a2:a2":
-sudo ip link add onvif-proxy-2 link eth0 address a2:a2:a2:a2:a2:a2 type macvlan mode bridge
-
-# Setup the first virtual network with name "onvif-proxy-3" and MAC address "a2:a2:a2:a2:a2:a3":
-sudo ip link add onvif-proxy-3 link eth0 address a2:a2:a2:a2:a2:a3 type macvlan mode bridge
-
-# Setup the first virtual network with name "onvif-proxy-4" and MAC address "a2:a2:a2:a2:a2:a4":
-sudo ip link add onvif-proxy-4 link eth0 address a2:a2:a2:a2:a2:a4 type macvlan mode bridge
-```
-
-The above configuration creates a virtual Onvif device that listens on port 8081 of the `a2:a2:a2:a2:a2:a1` virtual network and forwards the RTSP video streams and snapshots from `192.168.1.152` (the real Onvif server).
-
-
-
-
-
-
 
 [^1]: [What is MacVLAN?](https://ipwithease.com/what-is-macvlan)
 [^2]: [Wikipedia: Locally Administered MAC Address](https://en.wikipedia.org/wiki/MAC_address#:~:text=Locally%20administered%20addresses%20are%20distinguished,how%20the%20address%20is%20administered.)
