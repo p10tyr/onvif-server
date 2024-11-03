@@ -4,25 +4,28 @@ It takes an existing RTSP stream and builds a virtual ONVIF device for it so the
 
 Currently only Onvif Profile S (Live Streaming) is implemented with limited functionality.
 
-## Credits
+Non ONVIF camera adopted in Unify Protect 
+
+![image](https://github.com/user-attachments/assets/7fa9ab55-7830-4602-a1e5-d1ad9184117e)
+
+
+### Credits
 Thank you Daniela Hase for dropping the amazing code to the public!
 Original repository https://github.com/daniela-hase/onvif-server
 
 It has truly inspired me and gave me so many ideas! 
 I couldnt resist or wait so I had to fork your original code so that I could implement all my ideas.
 
-## Unifi Protect
-Unifi Protect 5.0 introduced support for third party cameras that allow the user to add Onvif compatible cameras to their Unifi Protect system.
+### Unifi Protect
+Unifi Protect 5.0 introduced support for third party cameras that allow the user to add onvif compatible cameras to their Unifi Protect system.
+
+The username and password are the same as on the real Onvif device.
 
 Unifi Protect seems to only support h264 video streams at the moment. So ensure your real camera encodes videos with h264 in normal or high profile. Do not use h264+
 
-At the time of writing this, version 5.0.34 of Unifi Protect unfortunately has some limitations and does only support cameras with a single high- and low quality stream. Unfortunately video recorders that output multiple cameras (e.g. Hikvision / Dahua XVR) or cameras with multiple internal cameras are not properly supported.
-
-Your Virtual Onvif Devices should now automatically show up for adoption in Unifi Protect as the name specified in the config. The username and password are the same as on the real Onvif device.
-
 ---
 
-# Roadmap
+## Roadmap
 - Simplyfy docker - DONE
   - Only run in Docker - DONE
   - Auto virtual MAC registrations - DONE
@@ -31,7 +34,7 @@ Your Virtual Onvif Devices should now automatically show up for adoption in Unif
   - Implement some other features
 
 
-# Docker Compose
+# Getting started with Docker Compose
 
 Create a directory locally where you will keep your compose and config files.
 
