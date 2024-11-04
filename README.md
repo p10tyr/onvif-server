@@ -74,7 +74,7 @@ If you seem to have problems like
 - Port numbers in use error during startup
 - MAC shows the wrong IP
 
-Fenerally depends from OS to OS. 
+Generally depends from OS to OS. 
 Eg in Ubuntu 22. 
 
 You need to run these commands to allow virtual interface max advertising - but you still need a differnt port per virtual IP
@@ -91,14 +91,17 @@ Figure out how many RTSP streams you want to add, find an ip range for these. I 
 
 Add these static reservatation in before running any dcoker files
 
+Device 1
 - onvif_proxy_1
 - IP 192.168.51
 - MAC 0A:00:00:00:00:51
 
+Device2
 - onvif_proxy_2
 - IP 192.168.52
 - MAC 0A:00:00:00:00:52
 
+TIPS
 - MAC starting with `x2:xx:xx:xx:xx:xx`,`x6:xx:xx:xx:xx:xx`,`xA:xx:xx:xx:xx:xx` and `xE:xx:xx:xx:xx:xx` are Locally Administered Addresses (LAA) and wont clash with real devices
 - Usually the same server port numbers per MAC/IP works fine with host newrok but some OS's or network drivers dont support that and you need to tweak the server ports
 
@@ -109,15 +112,15 @@ Create a directory locally where you will keep your compose and config files.
 
 1. Create a directory and change into it
   - `mkdir rtsp-to-onvif` and `cd rtsp-to-onvif`
-1.  Download the compose.yaml file
+2.  Download the compose.yaml file
   - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/compose.yaml`
-1. Download the config.yaml
+3. Download the config.yaml
   - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/config.yaml`
-1. Edit and configure your cameras
+4. Edit and configure your cameras
   - `nano config.yaml`
-1. Run compose in attached mode and check for any messages. 
+5. Run compose in attached mode and check for any messages. 
   - `sudo docker compose up`
-1. If you see the camera and mac show up in Protect run docker in detached mode, Dockge, Portainer, etc...
+6. If you see the camera and mac show up in Protect run docker in detached mode, Dockge, Portainer, etc...
   - `sudo docker compose up d`
 
 ### Download the compose.yaml file 
