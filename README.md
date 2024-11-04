@@ -16,8 +16,14 @@ What can you adopt?
 - Adopt `WebCam --> go2rtc --> RTSP (h264) --> Protect`
 - Adopt `... Anything RTSP --> Protect`
 
+IP camera --> RTSP (h264) --> Protect
 
 ![image](https://github.com/user-attachments/assets/7fa9ab55-7830-4602-a1e5-d1ad9184117e)
+
+Analog! --> NVR --> RTSP (h264) --> Protect
+
+![analog-dvr-rtsp](https://github.com/user-attachments/assets/ef401f8d-c56c-4ab0-8a44-630823a35ad7)
+
 
 
 ### Credits
