@@ -8,7 +8,6 @@ const fs = require('fs');
 const os = require('os');
 const logger = require('simple-node-logger').createSimpleLogger();
 const { execSync } = require('child_process');
-const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
 
 Date.prototype.stdTimezoneOffset = function() {
     let jan = new Date(this.getFullYear(), 0, 1);
@@ -26,11 +25,14 @@ function getIp4FromMac(macAddress) {
     for (let interface in networkInterfaces){
      logger.trace(interface);
         for (let network of networkInterfaces[interface]){
-            logger.trace(network);
-            if (network.family == 'IPv4' && network.mac.toLowerCase() == macAddress.toLowerCase())
+            //logger.trace(network);
+            if (network.family == 'IPv4' && network.mac.toLowerCase() == macAddress.toLowerCase()){
+                logger.debug(`NET_SCAN: Found IPv4: ${network.address} for MAC: ${macAddress.toLowerCase()}`)
                 return network.address;
+            }
         }
     }
+    logger.error(`NET_SCAN: Did not find IPv4 for MAC: ${macAddress.toLowerCase()}`)
     return null;
 }
 
@@ -48,7 +50,7 @@ class OnvifServer {
         if (!this.config.hostname)
         {
             const vlanName = `rtsp2onvif_${proxyCounter}`
-            logger.info(`add ${vlanName} MAC`)
+            logger.info(`NET_CONF: Add ${vlanName} MAC: ${this.config.mac}`)
             try {
                 const stdout = execSync(`ip link add ${vlanName} link ${this.config.dev} address ${this.config.mac} type macvlan mode bridge`)
                 logger.debug(stdout)
@@ -56,23 +58,19 @@ class OnvifServer {
                 logger.debug(error.message)
             }
 
-            logger.info(`set ${vlanName} IPv4`)
+            logger.info(`NET_CONF: Set ${vlanName} IPv4 ${this.config.ipv4}`)
             try {
                 execSync(`ip addr add ${this.config.ipv4} dev ${vlanName}`)
             } catch (error) {
                 logger.debug(error.message)
             }
 
-            logger.info(`set ${vlanName} UP`)
+            logger.info(`NET_CONF: Set ${vlanName} UP`)
             try {
                 execSync(`ip link set ${vlanName} up`)
             } catch (error) {
                 logger.debug(error.message)
             }
-
-            logger.info(``)
-            logger.info(`Waiting 1 minute for new virtual interface to register MAC`)
-            sleep(60 * 1000).then(() => {});
 
             if (!this.config.hostname)
                 this.config.hostname = getIp4FromMac(this.config.mac);
@@ -410,11 +408,11 @@ class OnvifServer {
 
     enableDebugOutput() {
         this.deviceService.on('request', (request, methodName) => {
-            logger.debug('DeviceService: ' + methodName);
+            logger.debug('NET_REQUEST: DeviceService: ' + methodName);
         });
         
         this.mediaService.on('request', (request, methodName) => {
-            logger.debug('MediaService: ' + methodName);
+            logger.debug('NET_REQUEST: MediaService: ' + methodName);
         });
     }
 

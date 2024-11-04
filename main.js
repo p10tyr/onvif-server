@@ -54,7 +54,7 @@ if (args) {
             let server = onvifServer.createServer(onvifConfig, proxyCounter);
 
             if (server.getHostname()) {
-                logger.info(`Starting virtual onvif server for ${onvifConfig.name} on ${server.getHostname()}`) //:${onvifConfig.ports.server} ...`);
+                logger.info(`Starting virtual onvif server for ${onvifConfig.name} on ${server.getHostname()}:${onvifConfig.ports.server} ...`);
                 server.startServer()
                 server.startDiscovery()
                 if (process.env.DEBUG)
