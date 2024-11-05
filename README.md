@@ -1,4 +1,4 @@
-# Virtual Onvif Proxy
+# 📸 Virtual Onvif Proxy
 This is a continuation from the simple virtual ONVIF proxy that was originally released by Daniela Hase.
 
 It takes existing RTSP streams and builds virtual ONVIF proxies that work with Unifi Protect
@@ -25,7 +25,7 @@ Analog! --> NVR --> RTSP (h264) --> Protect
 ![analog-dvr-rtsp](https://github.com/user-attachments/assets/ef401f8d-c56c-4ab0-8a44-630823a35ad7)
 
 
-# Getting Started
+# 🧾 Getting Started
 
 In a few steps you will have everything needed to run container first time. This will auto confiugre IP's for you.
 If you want more control over MAC's and IP's scroll down to Router Setup
@@ -50,7 +50,6 @@ Create a directory locally where you will keep your compose and config files.
 
 
 ## Config file
-
 
 - You just need to supply the bare minimum for each camera
 - Autoconfigure MAC addresses all use Unicast LAA prefix `1A:11:B0` and the NIC address will be random
@@ -90,14 +89,14 @@ onvif:
 ```
 
 
-### Credits
+## Credits
 Thank you Daniela Hase for relasing the original script to the public!
 Original repository https://github.com/daniela-hase/onvif-server
 
 It has truly inspired me and gave me so many ideas! 
 That is why I had to fork your original repo so that I could develop this further to be a docker appliance.
 
-### Unifi Protect
+## Unifi Protect
 Tested on Unifi Protect 5.0.40+
 
 Once the device shows up in protect, make sure the correct MAC address is assigned to the IP before adopting. 
@@ -113,9 +112,8 @@ Known Limitations
 - Snapshot not implemented yet. Hope it works.
 - HighProfile support only for now - You can supply LowProfile but that shows up as an extra camera.
 
----
 
-## Roadmap
+# ⚒️ Roadmap
 - Simplyfy docker - DONE
   - Only run in Docker - DONE
   - Auto virtual MAC registrations - DONE
@@ -126,12 +124,10 @@ Known Limitations
   - Implement some other features?
 
 
-# Docker and Dcoker Compose
+# 🛜 Docker and Docker Compose
 
 Debug is enabled byu default in compose.yaml
 Once you have setup complete you can disable it.
-
-
 
 ## compose.yaml file 
 
@@ -161,8 +157,6 @@ Virtual ONVIF 1
 Virtual ONVIF 2
 - MAC 0A:00:00:00:00:52
 - IP 192.168.52
-
-
 
 ## Konwn problems
 
