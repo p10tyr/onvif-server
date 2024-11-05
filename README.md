@@ -5,8 +5,8 @@ It takes existing RTSP streams and builds virtual ONVIF proxies that work with U
 
 This repository has added features such as ...
 - Making it a pure docker appliance. Pull-And-Run™
-- Only deals with RSTP to ONVIF proxyies
-- Auto creates MAC addresses and registers IP's with DHCP
+- Only deals with RSTP to ONVIF proxies
+- Auto creates MAC addresses and registers IPv4 with DHCP
 - more to come...
 
 What can you adopt?
