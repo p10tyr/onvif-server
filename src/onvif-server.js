@@ -5,76 +5,28 @@ const xml2js = require('xml2js');
 const uuid = require('node-uuid');
 const url = require('url');
 const fs = require('fs');
-const os = require('os');
-const logger = require('simple-node-logger').createSimpleLogger();
-const { execSync } = require('child_process');
+const logger = require('simple-node-logger');
 
-Date.prototype.stdTimezoneOffset = function() {
+const { getIp4FromMac } = require('./net-tools')
+
+Date.prototype.stdTimezoneOffset = function () {
     let jan = new Date(this.getFullYear(), 0, 1);
     let jul = new Date(this.getFullYear(), 6, 1);
     return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
 }
 
-Date.prototype.isDstObserved = function() {
+Date.prototype.isDstObserved = function () {
     return this.getTimezoneOffset() < this.stdTimezoneOffset();
 }
 
-function getIp4FromMac(macAddress) {
-    let networkInterfaces = os.networkInterfaces();
-
-    for (let interface in networkInterfaces){
-     logger.trace(interface);
-        for (let network of networkInterfaces[interface]){
-            //logger.trace(network);
-            if (network.family == 'IPv4' && network.mac.toLowerCase() == macAddress.toLowerCase()){
-                logger.debug(`NET_SCAN: Found IPv4: ${network.address} for MAC: ${macAddress.toLowerCase()}`)
-                return network.address;
-            }
-        }
-    }
-    logger.error(`NET_SCAN: Did not find IPv4 for MAC: ${macAddress.toLowerCase()}`)
-    return null;
-}
-
-class OnvifServer {
-    constructor(config, proxyCounter) {
+module.exports = class OnvifServer {
+    constructor(logger, config) {
         this.config = config;
+        this.logger = logger;
 
-        if (process.env.DEBUG){
-            logger.setLevel('trace');
-        }
-
+        this.config.hostname = getIp4FromMac(logger, this.config.mac);
         if (!this.config.hostname)
-            this.config.hostname = getIp4FromMac(this.config.mac);
-
-        if (!this.config.hostname)
-        {
-            const vlanName = `rtsp2onvif_${proxyCounter}`
-            logger.info(`NET_CONF: Add ${vlanName} MAC: ${this.config.mac}`)
-            try {
-                const stdout = execSync(`ip link add ${vlanName} link ${this.config.dev} address ${this.config.mac} type macvlan mode bridge`)
-                logger.debug(stdout)
-            } catch (error) {
-                logger.debug(error.message)
-            }
-
-            logger.info(`NET_CONF: Set ${vlanName} IPv4 ${this.config.ipv4}`)
-            try {
-                execSync(`ip addr add ${this.config.ipv4} dev ${vlanName}`)
-            } catch (error) {
-                logger.debug(error.message)
-            }
-
-            logger.info(`NET_CONF: Set ${vlanName} UP`)
-            try {
-                execSync(`ip link set ${vlanName} up`)
-            } catch (error) {
-                logger.debug(error.message)
-            }
-
-            if (!this.config.hostname)
-                this.config.hostname = getIp4FromMac(this.config.mac);
-        }
+            return -1;
 
         this.videoSource = {
             attributes: {
@@ -83,7 +35,7 @@ class OnvifServer {
             Framerate: this.config.highQuality.framerate,
             Resolution: { Width: this.config.highQuality.width, Height: this.config.highQuality.height }
         };
-    
+
         this.profiles = [
             {
                 Name: 'MainStream',
@@ -167,19 +119,19 @@ class OnvifServer {
                 }
             );
         }
-        
+
         this.onvif = {
             DeviceService: {
                 Device: {
                     GetSystemDateAndTime: (args) => {
                         let now = new Date();
-            
+
                         let offset = now.getTimezoneOffset();
                         let abs_offset = Math.abs(offset);
                         let hrs_offset = Math.floor(abs_offset / 60);
                         let mins_offset = (abs_offset % 60);
                         let tz = 'UTC' + (offset < 0 ? '-' : '+') + hrs_offset + (mins_offset === 0 ? '' : ':' + mins_offset);
-            
+
                         return {
                             SystemDateAndTime: {
                                 DateTimeType: 'NTP',
@@ -199,12 +151,12 @@ class OnvifServer {
                             }
                         };
                     },
-        
+
                     GetCapabilities: (args) => {
                         let response = {
                             Capabilities: {}
                         };
-                
+
                         if (args.Category === undefined || args.Category == 'All' || args.Category == 'Device') {
                             response.Capabilities['Device'] = {
                                 XAddr: `http://${this.config.hostname}:${this.config.ports.server}/onvif/device_service`,
@@ -285,30 +237,30 @@ class OnvifServer {
 
                         return response;
                     },
-        
+
                     GetServices: (args) => {
                         return {
-                            Service : [
+                            Service: [
                                 {
-                                    Namespace : 'http://www.onvif.org/ver10/device/wsdl',
-                                    XAddr : `http://${this.config.hostname}:${this.config.ports.server}/onvif/device_service`,
-                                    Version : { 
-                                        Major : 2,
-                                        Minor : 5,
+                                    Namespace: 'http://www.onvif.org/ver10/device/wsdl',
+                                    XAddr: `http://${this.config.hostname}:${this.config.ports.server}/onvif/device_service`,
+                                    Version: {
+                                        Major: 2,
+                                        Minor: 5,
                                     }
                                 },
-                                { 
-                                    Namespace : 'http://www.onvif.org/ver10/media/wsdl',
-                                    XAddr : `http://${this.config.hostname}:${this.config.ports.server}/onvif/media_service`,
-                                    Version : { 
-                                        Major : 2,
-                                        Minor : 5,
+                                {
+                                    Namespace: 'http://www.onvif.org/ver10/media/wsdl',
+                                    XAddr: `http://${this.config.hostname}:${this.config.ports.server}/onvif/media_service`,
+                                    Version: {
+                                        Major: 2,
+                                        Minor: 5,
                                     }
                                 }
                             ]
                         };
                     },
-                
+
                     GetDeviceInformation: (args) => {
                         return {
                             Manufacturer: 'rtsp-2-onvif',
@@ -318,10 +270,10 @@ class OnvifServer {
                             HardwareId: `${this.config.name.replace(' ', '_')}-1001`
                         };
                     }
-                
+
                 }
             },
-        
+
             MediaService: {
                 Media: {
                     GetProfiles: (args) => {
@@ -329,7 +281,7 @@ class OnvifServer {
                             Profiles: this.profiles
                         };
                     },
-        
+
                     GetVideoSources: (args) => {
                         return {
                             VideoSources: [
@@ -337,7 +289,7 @@ class OnvifServer {
                             ]
                         };
                     },
-        
+
                     GetSnapshotUri: (args) => {
                         let uri = `http://${this.config.hostname}:${this.config.ports.server}/snapshot.png`;
                         if (args.ProfileToken == 'sub_stream' && this.config.lowQuality && this.config.lowQuality.snapshot)
@@ -346,15 +298,15 @@ class OnvifServer {
                             uri = `http://${this.config.hostname}:${this.config.ports.snapshot}${this.config.highQuality.snapshot}`;
 
                         return {
-                            MediaUri : {
+                            MediaUri: {
                                 Uri: uri,
-                                InvalidAfterConnect : false,
-                                InvalidAfterReboot : false,
-                                Timeout : 'PT30S'
+                                InvalidAfterConnect: false,
+                                InvalidAfterReboot: false,
+                                Timeout: 'PT30S'
                             }
                         };
                     },
-                
+
                     GetStreamUri: (args) => {
                         let path = this.config.highQuality.rtsp;
                         if (args.ProfileToken == 'sub_stream' && this.config.lowQuality)
@@ -378,28 +330,30 @@ class OnvifServer {
         let action = url.parse(request.url, true).pathname;
         if (action == '/snapshot.png') {
             let image = fs.readFileSync('./resources/snapshot.png');
-            response.writeHead(200, {'Content-Type': 'image/png' });
+            response.writeHead(200, { 'Content-Type': 'image/png' });
             response.end(image, 'binary');
         } else {
-            response.writeHead(404, {'Content-Type': 'text/plain'});
+            response.writeHead(404, { 'Content-Type': 'text/plain' });
             response.write('404 Not Found\n');
             response.end();
         }
     }
 
-    startServer() {
+    startHttpServer() {
+        this.logger.info(`SERVER: ${this.config.name} - HTTP listening on ${this.config.hostname}:${this.config.ports.server}`);
+
         this.server = http.createServer(this.listen);
         this.server.listen(this.config.ports.server, this.config.hostname);
 
         this.deviceService = soap.listen(this.server, {
-            path: '/onvif/device_service', 
+            path: '/onvif/device_service',
             services: this.onvif,
             xml: fs.readFileSync('./wsdl/device_service.wsdl', 'utf8'),
             forceSoap12Headers: true
         });
 
         this.mediaService = soap.listen(this.server, {
-            path: '/onvif/media_service', 
+            path: '/onvif/media_service',
             services: this.onvif,
             xml: fs.readFileSync('./wsdl/media_service.wsdl', 'utf8'),
             forceSoap12Headers: true
@@ -408,19 +362,22 @@ class OnvifServer {
 
     enableDebugOutput() {
         this.deviceService.on('request', (request, methodName) => {
-            logger.debug('NET_REQUEST: DeviceService: ' + methodName);
+            this.logger.debug(`SERVER: ${this.config.name} - DeviceService: ${methodName}`);
         });
-        
+
         this.mediaService.on('request', (request, methodName) => {
-            logger.debug('NET_REQUEST: MediaService: ' + methodName);
+            this.logger.debug(`SERVER: ${this.config.name} -  MediaService: ${methodName}`);
         });
     }
 
     startDiscovery() {
         this.discoveryMessageNo = 0;
         this.discoverySocket = dgram.createSocket({ type: 'udp4', reuseAddr: true });
-        
+
         this.discoverySocket.on('message', (message, remote) => {
+
+            this.logger.debug(`SERVER: ${this.config.name} - Discovery request from ${remote.address}:${remote.port}`);
+
             xml2js.parseString(message.toString(), { tagNameProcessors: [xml2js['processors'].stripPrefix] }, (err, result) => {
                 let probeUuid = result['Envelope']['Header'][0]['MessageID'][0];
                 let probeType = '';
@@ -432,10 +389,10 @@ class OnvifServer {
 
                 if (typeof probeType === 'object')
                     probeType = probeType._;
-            
+
                 if (probeType === '' || probeType.indexOf('NetworkVideoTransmitter') > -1) {
-                    let response = 
-                       `<?xml version="1.0" encoding="UTF-8"?>
+                    let response =
+                        `<?xml version="1.0" encoding="UTF-8"?>
                         <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:dn="http://www.onvif.org/ver10/network/wsdl">
                             <SOAP-ENV:Header>
                                 <wsa:MessageID>uuid:${uuid.v1()}</wsa:MessageID>
@@ -471,7 +428,7 @@ class OnvifServer {
                 }
             });
         });
-        
+
         this.discoverySocket.bind(3702, () => {
             return this.discoverySocket.addMembership('239.255.255.250', this.config.hostname);
         });
@@ -481,10 +438,3 @@ class OnvifServer {
         return this.config.hostname;
     }
 };
-
-function createServer(config, isDebug) {
-    return new OnvifServer(config, isDebug);
-}
-
-exports.createServer = createServer;
-exports.getHostname = getIp4FromMac;

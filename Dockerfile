@@ -1,11 +1,12 @@
 FROM node:22-alpine
 
-WORKDIR /app
+RUN apk add --no-cache dhclient
+ENV NODE_ENV=production
+WORKDIR /usr/src/app
 
-COPY package*.json ./
-
-RUN npm ci
+COPY ["package.json", "package-lock.json*", "./"]
+RUN npm ci --production --silent 
 
 COPY . .
 
-ENTRYPOINT node main.js /onvif.yaml
+CMD ["node", "main.js", "/onvif.yaml"]
