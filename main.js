@@ -32,13 +32,12 @@ if (args) {
         let server = new OnvifServer(logger, onvifConfig);
 
         if (server.getHostname()) {
-            logger.info(`Starting virtual onvif server for ${onvifConfig.name} on ${server.getHostname()}:${onvifConfig.ports.server} ...`);
-            server.startServer()
-            server.startDiscovery()
+
+            logger.info('');
+            server.startHttpServer();
+            server.startDiscovery();
             if (process.env.DEBUG)
                 server.enableDebugOutput()
-            logger.info('  Started!')
-            logger.info('')
 
             if (!proxies[onvifConfig.target.hostname])
                 proxies[onvifConfig.target.hostname] = {}
@@ -55,10 +54,8 @@ if (args) {
 
     for (let destinationAddress in proxies) {
         for (let sourcePort in proxies[destinationAddress]) {
-            logger.info(`Starting tcp proxy from port ${sourcePort} to ${destinationAddress}:${proxies[destinationAddress][sourcePort]} ...`);
+            logger.info(`PROXY: ${sourcePort} --> ${destinationAddress}:${proxies[destinationAddress][sourcePort]}`);
             tcpProxy.createProxy(sourcePort, destinationAddress, proxies[destinationAddress][sourcePort]);
-            logger.info('  Started!');
-            logger.info('');
         }
     }
 

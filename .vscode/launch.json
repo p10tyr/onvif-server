@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Node.js Debug App",
+            "program": "${workspaceFolder}/main.js",
+            "args": ["config.yaml"]
+        },
+        {
+            "name": "Docker Node.js Launch",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: debug",
+            "platform": "node",
+        }
+    ]
+}

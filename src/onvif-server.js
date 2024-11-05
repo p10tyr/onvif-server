@@ -7,7 +7,7 @@ const url = require('url');
 const fs = require('fs');
 const logger = require('simple-node-logger');
 
-const { getIp4FromMac }= require('./net-tools')
+const { getIp4FromMac } = require('./net-tools')
 
 Date.prototype.stdTimezoneOffset = function () {
     let jan = new Date(this.getFullYear(), 0, 1);
@@ -339,7 +339,9 @@ module.exports = class OnvifServer {
         }
     }
 
-    startServer() {
+    startHttpServer() {
+        this.logger.info(`SERVER: ${this.config.name} - HTTP listening on ${this.config.hostname}:${this.config.ports.server}`);
+
         this.server = http.createServer(this.listen);
         this.server.listen(this.config.ports.server, this.config.hostname);
 
@@ -360,11 +362,11 @@ module.exports = class OnvifServer {
 
     enableDebugOutput() {
         this.deviceService.on('request', (request, methodName) => {
-            logger.debug('NET_REQUEST: DeviceService: ' + methodName);
+            this.logger.debug(`SERVER: ${this.config.name} - DeviceService: ${methodName}`);
         });
 
         this.mediaService.on('request', (request, methodName) => {
-            logger.debug('NET_REQUEST: MediaService: ' + methodName);
+            this.logger.debug(`SERVER: ${this.config.name} -  MediaService: ${methodName}`);
         });
     }
 
@@ -373,6 +375,9 @@ module.exports = class OnvifServer {
         this.discoverySocket = dgram.createSocket({ type: 'udp4', reuseAddr: true });
 
         this.discoverySocket.on('message', (message, remote) => {
+
+            this.logger.debug(`SERVER: ${this.config.name} - Discovery request from ${remote.address}:${remote.port}`);
+
             xml2js.parseString(message.toString(), { tagNameProcessors: [xml2js['processors'].stripPrefix] }, (err, result) => {
                 let probeUuid = result['Envelope']['Header'][0]['MessageID'][0];
                 let probeType = '';

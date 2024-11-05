@@ -78,8 +78,6 @@ function readAndCheckConfig(logger, configFile) {
                 logger.debug(error.message);
             }
 
-
-
             // logger.info(`NET_CONF: Set ${vlanName} IPv4 ${this.config.ipv4}`)
             // try {
             //     execSync(`ip addr add ${this.config.ipv4} dev ${vlanName}`)
@@ -94,8 +92,8 @@ function readAndCheckConfig(logger, configFile) {
             //     logger.debug(error.message)
             // }
         }
+        proxyCounter++
     }
-    proxyCounter++;
 
     if (isSaveRequired) {
         writeConfig(logger, configFile, config);
