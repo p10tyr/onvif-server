@@ -1,39 +1,41 @@
 onvif:
-  - name: Bullet # Only use simple letters, no spaces and keep it short
-    dev: enp2s0 #eg, eth0
-    target: # This is the origin device RTSP address and ports
-      hostname: 192.168.1.187
-      ports:
-        rtsp: 554
-        snapshot: 80
-    highQuality:
-      rtsp: /Streaming/Channels/101/
-      snapshot: /ISAPI/Streaming/Channels/101/picture
-      width: 2048
-      height: 1536
-      framerate: 15
-      bitrate: 3072
-      quality: 4
-    ports: # In the unlikely event of problems change these for each proxy server
-      server: 8081 
-      rtsp: 8554
-      snapshot: 8082
-  - name: Dome
-    dev: enp2s0 
-    highQuality:
-      rtsp: /Streaming/Channels/101/
-      snapshot: /ISAPI/Streaming/Channels/101/picture
-      width: 2048
-      height: 1536
-      framerate: 15
-      bitrate: 3072
-      quality: 4
+  - name: BulletCam                               # A user define named that will show up in the consumer device. Use letters only, no spaces or special characters
+    dev: enp2s0 #eth0                             # Network interface to add virtual IP's too. use ip addr to find your name
     target:
-      hostname: 192.168.1.139
+      hostname: 192.168.1.187                      # Your cameras IPv4 address
       ports:
-        rtsp: 554
-        snapshot: 80
-    ports:
-      server: 9081
-      rtsp: 9554
-      snapshot: 9082 
+        rtsp: 554                                  # Your cameras RTSP port. Typically 554
+        snapshot: 80                               # Cameras non https port for snapshots
+    highQuality:
+      rtsp: /Streaming/Channels/101/                    # The RTSP Path
+      snapshot: /ISAPI/Streaming/Channels/101/picture   # Snapshot path - not working yet
+      width: 2048                                       # The Video Width
+      height: 1536                                      # The Video Height
+      framerate: 15                                     # The Video Framerate/FPS
+      bitrate: 3072                                     # The Video Bitrate in kb/s
+      quality: 4                                        # Quality, leave this as 4 for the high quality stream.
+    ports:                                              # Virtual server ports. No need to change these unles you run into port already in use problems
+      server: 8081
+      rtsp: 8554
+      snapshot: 8080
+    # mac - automatically added here and IP comes from DHCP- Add your own if you know what you doing
+    # uuid - ONVIF ID - automatically added here. If you change it Protect will think its a different camera
+  # - name: Dome 
+  #   dev: enp2s0 
+  #   highQuality:
+  #     rtsp: /Streaming/Channels/101/
+  #     snapshot: /ISAPI/Streaming/Channels/101/picture
+  #     width: 2048
+  #     height: 1536
+  #     framerate: 15
+  #     bitrate: 3072
+  #     quality: 4
+  #   target:
+  #     hostname: 192.168.1.139
+  #     ports:
+  #       rtsp: 554
+  #       snapshot: 80
+  #   ports:
+  #     server: 9081
+  #     rtsp: 9554
+  #     snapshot: 9082 
