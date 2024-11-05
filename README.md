@@ -39,7 +39,7 @@ Create a directory locally where you will keep your compose and config files.
 2. Download the compose.yaml file
   - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/compose.yaml`
 3. Download the config.example.yaml and clone it
-  - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/config.yaml`
+  - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/config.example.yaml`
   - `cp config.example.yaml config.yaml`
 4. Edit and configure your cameras
   - `nano config.yaml`
