@@ -1,0 +1,39 @@
+onvif:
+  - name: Bullet # Only use simple letters, no spaces and keep it short
+    dev: enp2s0 #eg, eth0
+    target: # This is the origin device RTSP address and ports
+      hostname: 192.168.1.187
+      ports:
+        rtsp: 554
+        snapshot: 80
+    highQuality:
+      rtsp: /Streaming/Channels/101/
+      snapshot: /ISAPI/Streaming/Channels/101/picture
+      width: 2048
+      height: 1536
+      framerate: 15
+      bitrate: 3072
+      quality: 4
+    ports: # In the unlikely event of problems change these for each proxy server
+      server: 8081 
+      rtsp: 8554
+      snapshot: 8082
+  - name: Dome
+    dev: enp2s0 
+    highQuality:
+      rtsp: /Streaming/Channels/101/
+      snapshot: /ISAPI/Streaming/Channels/101/picture
+      width: 2048
+      height: 1536
+      framerate: 15
+      bitrate: 3072
+      quality: 4
+    target:
+      hostname: 192.168.1.139
+      ports:
+        rtsp: 554
+        snapshot: 80
+    ports:
+      server: 9081
+      rtsp: 9554
+      snapshot: 9082 
