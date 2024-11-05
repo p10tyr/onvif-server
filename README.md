@@ -1,12 +1,12 @@
 # Virtual Onvif Proxy
-This is a continuation from the simple virtual ONVIF proxy that was originally developed by Daniela Hase.
+This is a continuation from the simple virtual ONVIF proxy that was originally released by Daniela Hase.
 
-It takes an existing RTSP streams and builds a virtual ONVIF Proxy devices as a work around limitations for Unifi Protect
+It takes existing RTSP streams and builds virtual ONVIF proxies that work with Unifi Protect
 
-This repository has added features and enchanched the original code by ...
-- making it a pure docker appliance (docker-compose)
-- only deals with RSTP to ONVIF proxying
-- auto registers multiple virtual addresses from inside docker
+This repository has added features such as ...
+- Making it a pure docker appliance. Pull-And-Run™
+- Only deals with RSTP to ONVIF proxyies
+- Auto creates MAC addresses and registers IP's with DHCP
 - more to come...
 
 What can you adopt?
@@ -24,6 +24,70 @@ Analog! --> NVR --> RTSP (h264) --> Protect
 
 ![analog-dvr-rtsp](https://github.com/user-attachments/assets/ef401f8d-c56c-4ab0-8a44-630823a35ad7)
 
+
+# Getting Started
+
+In a few steps you will have everything needed to run container first time. This will auto confiugre IP's for you.
+If you want more control over MAC's and IP's scroll down to Router Setup
+
+## Docker compose
+
+Create a directory locally where you will keep your compose and config files.
+
+1. Create a directory and change into it
+  - `mkdir rtsp-to-onvif` and `cd rtsp-to-onvif`
+2. Download the compose.yaml file
+  - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/compose.yaml`
+3. Download the config.example.yaml and clone it
+  - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/config.yaml`
+  - `cp config.example.yaml config.yaml`
+4. Edit and configure your cameras
+  - `nano config.yaml`
+5. Run compose in attached mode and check for any messages.
+  - `sudo docker compose up`
+6. If you see the cameras show up in Protect then you can run docker in detached mode (or use Dockge, Portainer, etc...)
+  - `sudo docker compose up d`
+
+
+## Config file
+
+
+- You just need to supply the bare minimum for each camera
+- Autoconfigure MAC addresses all use Unicast LAA prefix `1A:11:B0` and the NIC address will be random
+- UUID addresses will be added automatically
+- IPv4 will come from your DHCP server
+
+> ℹ️ **NOTE** 
+> 
+> This file will be overwritten during automatic configuration so comments will be lost.
+> 
+> No username or passwords required here!
+
+
+```yaml
+onvif:
+  - name: BulletCam                               # A user define named that will show up in the consumer device. Use letters only, no spaces or special characters
+    dev: enp2s0 #eth0                             # Network interface to add virtual IP's too. use ip addr to find your name
+    target:
+      hostname: 192.168.1.187                      # Your cameras IPv4 address
+      ports:
+        rtsp: 554                                  # Your cameras RTSP port. Typically 554
+        snapshot: 80                               # Cameras non https port for snapshots
+    highQuality:
+      rtsp: /Streaming/Channels/101/                    # The RTSP Path
+      snapshot: /ISAPI/Streaming/Channels/101/picture   # Snapshot path - not working yet
+      width: 2048                                       # The Video Width
+      height: 1536                                      # The Video Height
+      framerate: 15                                     # The Video Framerate/FPS
+      bitrate: 3072                                     # The Video Bitrate in kb/s
+      quality: 4                                        # Quality, leave this as 4 for the high quality stream.
+    ports:                                              # Virtual server ports. No need to change these unles you run into port already in use problems
+      server: 8081
+      rtsp: 8554
+      snapshot: 8080
+    #mac - automatically added here and IP comes from DHCP- Add your own if you know what you doing
+    #uuid - ONVIF ID - automatically added here. If you change it Protect will think its a different camera
+```
 
 
 ### Credits
@@ -55,15 +119,50 @@ Known Limitations
 - Simplyfy docker - DONE
   - Only run in Docker - DONE
   - Auto virtual MAC registrations - DONE
+  - Register with DCHP - DONE
   - More debug messages - DONE
 - Learn about the ONVIF Profile S
   - Implement snapshot functionality?
   - Implement some other features?
 
 
-# Getting started and Docker (Compose)
+# Docker and Dcoker Compose
 
-> I have enabled debug in compose as default for now so you can read and copy out the logs out if needed
+Debug is enabled byu default in compose.yaml
+Once you have setup complete you can disable it.
+
+
+
+## compose.yaml file 
+
+You don't really have to change anything in this file.
+It has all the settings and permsions required to make it just work.
+
+Some properties
+- `volumnes: ./config.yaml:/onvif.yaml` - where your config file is. Next step
+- `cap_add: NET_ADMIN` - Required to create virtual networks based on config file
+- `environment: DEBUG:1` - Uncommnet if you need more debug logs to show up
+
+## Router setup
+
+ONVIF discovery works by using MAC addresses.
+If you are happy with DHCP you can skip this step
+
+If you really static reservations - Do that BEFORE running the container.
+
+Add static reservatations using LAA MAC's
+- MAC's starting with `x2:xx:xx:xx:xx:xx`,`x6:xx:xx:xx:xx:xx`,`xA:xx:xx:xx:xx:xx` and `xE:xx:xx:xx:xx:xx` are Locally Administered Addresses (LAA)
+
+
+Virtual ONVIF 1
+- MAC 0A:00:00:00:00:51
+- IP 192.168.51
+
+Virtual ONVIF 2
+- MAC 0A:00:00:00:00:52
+- IP 192.168.52
+
+
 
 ## Konwn problems
 
@@ -84,110 +183,20 @@ sudo sysctl -w net.ipv4.conf.all.arp_ignore=1
 sudo sysctl -w net.ipv4.conf.all.arp_announce=2
 ```
 
-## Router setup
-
-Firstly you will have to add static DHCP reservations in your router for each virtual onvif device.
-Figure out how many RTSP streams you want to add, find an ip range for these. I recomend to keep things simple, for example
-
-Add these static reservatation in before running any dcoker files
-
-Device 1
-- onvif_proxy_1
-- IP 192.168.51
-- MAC 0A:00:00:00:00:51
-
-Device2
-- onvif_proxy_2
-- IP 192.168.52
-- MAC 0A:00:00:00:00:52
-
-TIPS
-- MAC starting with `x2:xx:xx:xx:xx:xx`,`x6:xx:xx:xx:xx:xx`,`xA:xx:xx:xx:xx:xx` and `xE:xx:xx:xx:xx:xx` are Locally Administered Addresses (LAA) and wont clash with real devices
-- Usually the same server port numbers per MAC/IP works fine with host newrok but some OS's or network drivers dont support that and you need to tweak the server ports
-
-
-## Docker compose
-
-Create a directory locally where you will keep your compose and config files.
-
-1. Create a directory and change into it
-  - `mkdir rtsp-to-onvif` and `cd rtsp-to-onvif`
-2.  Download the compose.yaml file
-  - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/compose.yaml`
-3. Download the config.yaml
-  - `wget https://raw.githubusercontent.com/p10tyr/rtsp-to-onvif/refs/heads/release/config.yaml`
-4. Edit and configure your cameras
-  - `nano config.yaml`
-5. Run compose in attached mode and check for any messages. 
-  - `sudo docker compose up`
-6. If you see the camera and mac show up in Protect run docker in detached mode, Dockge, Portainer, etc...
-  - `sudo docker compose up d`
-
-### Download the compose.yaml file 
-
-You don't really have to change anything in this file.
-It has all the settings and permsions required to make it just work.
-
-Some properties
-- `volumnes: ./config.yaml:/onvif.yaml` - where your config file is. Next step
-- `cap_add: NET_ADMIN` - Required to create virtual networks based on config file
-- `environment: DEBUG:1` - Uncommnet if you need more debug logs to show up
-
-
-### Downlaod the config file
-
-Download the `config.yaml` file. This is the config that creates virtual proxies and connects them RTSP streams.
-
-> No username of passwords required here!
-IP and MAC addresses will be added automatically to the dev device you specify.
-Make sure they are avaiable and reserved as static in your router
-
-```yaml
-onvif:
-  - name: BulletCam                               # A user define named that will show up in the consumer device. use letters only, no spaces or special characters
-    uuid: ae426b06-36aa-4c89-84fb-0000000000a1    # A randomly chosen UUID (see below)
-    dev: enp2s0 #eth0                             # Network interface to add virtual IP's too. use ip addr to find your name
-    ipv4: 192.168.1.12                            # The available IPv4 on your network. Reserve static IP for this
-    mac: 0A:00:00:00:00:12                        # A virtual Locally Administered Addresses (LAA) MAC address for the server to bind to
-    ports:                                        # Virtual server ports. No need to change these unles you run into port already in use problems
-      server: 8081
-      rtsp: 8554
-      snapshot: 8080
-    highQuality:
-      rtsp: /Streaming/Channels/101/                    # The RTSP Path
-      snapshot: /ISAPI/Streaming/Channels/101/picture   # Snapshot path - not working yet
-      width: 2048                                       # The Video Width
-      height: 1536                                      # The Video Height
-      framerate: 15                                     # The Video Framerate/FPS
-      bitrate: 3072                                     # The Video Bitrate in kb/s
-      quality: 4                                        # Quality, leave this as 4 for the high quality stream.
-    target:
-      hostname: 192.168.1.187                      # Your cameras IPv4 address
-      ports:
-        rtsp: 554                                  # Your cameras RTSP port. Typically 554
-        snapshot: 80                               # Cameras non https port for snapshots
-```
-
 
 ### Other stuff
+
+Misc notes
+
+---
 
 Remove a virutal IP on the host without rebooting
 `sudo ip link del dev rtsp2onvif_<number>`
 
-## Run compose
+---
 
-```bash
-# For example, compose.yaml and config.yaml in this directory
-~$ cd /onvif-to-rtsp
+Wrapping an RTSP Stream
 
-# Run this command to see the terminal output and any debug messages. CTRL+C to stop
-~/onvif-to-rtsp$ sudo docker compose up
-
-# If all is good then run docker compose and detach so it runs in background
-~/onvif-to-rtsp$ sudo docker compose up -d
-```
-
-## Wrapping an RTSP Stream
 This tool is used to create ONVIF devices from regular RTSP streams by creating the following configuration.
 
 Cameras before ONVIF had all kinds of weird and wonderful implemenations
@@ -199,8 +208,6 @@ Things to look out for
 - http is enabled (for snapshots)
 - if snapshot is not working, try admin account. some cameras are like that
 - rtsp is enabled ideally on port 554
-
-
 
 **RTSP Example:**
 Assume you have this RTSP stream:
@@ -229,3 +236,4 @@ If you have a separate low-quality RTSP stream available, fill in the informatio
 [^2]: [Wikipedia: Locally Administered MAC Address](https://en.wikipedia.org/wiki/MAC_address#:~:text=Locally%20administered%20addresses%20are%20distinguished,how%20the%20address%20is%20administered.)
 [^3]: [UUIDv4 Generator](https://www.uuidgenerator.net/)
 [^4]: [Virtual Interfaces with different MAC addresses](https://serverfault.com/questions/682311/virtual-interfaces-with-different-mac-addresses)
+
