@@ -1,8 +1,8 @@
 # 📸 Virtual Onvif Proxy
+Simple docker container to add any RTSP stream into Unify Protect 5+
+
 This is a continuation from the simple virtual ONVIF proxy that was originally released by Daniela Hase.
-
-It takes existing RTSP streams and builds virtual ONVIF proxies that work with Unifi Protect
-
+  
 This repository has added features such as ...
 - Making it a pure docker appliance. Pull-And-Run™
 - Only deals with RSTP to ONVIF proxies
