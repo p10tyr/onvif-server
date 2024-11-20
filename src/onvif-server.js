@@ -351,6 +351,7 @@ module.exports = class OnvifServer {
             xml: fs.readFileSync('./wsdl/device_service.wsdl', 'utf8'),
             forceSoap12Headers: true
         });
+       
 
         this.mediaService = soap.listen(this.server, {
             path: '/onvif/media_service',
@@ -358,16 +359,25 @@ module.exports = class OnvifServer {
             xml: fs.readFileSync('./wsdl/media_service.wsdl', 'utf8'),
             forceSoap12Headers: true
         });
+        
     }
 
     enableDebugOutput() {
-        this.deviceService.on('request', (request, methodName) => {
-            this.logger.debug(`SERVER: ${this.config.name} - DeviceService: ${methodName}`);
-        });
+        this.deviceService.log = function(type, data, req){
+            console.debug(`SERVER: ${data}`);
+            //there is no logger in this context
+        };
+        this.mediaService.log = function(type, data, req){
+            console.debug(`SERVER: ${data}`);
+            //there is no logger in this context
+        };
+        // this.deviceService.on('request', (request, methodName) => {
+        //     this.logger.debug(`SERVER: ${this.config.name} - DeviceService: ${methodName}`);
+        // });
 
-        this.mediaService.on('request', (request, methodName) => {
-            this.logger.debug(`SERVER: ${this.config.name} -  MediaService: ${methodName}`);
-        });
+        // this.mediaService.on('request', (request, methodName) => {
+        //     this.logger.debug(`SERVER: ${this.config.name} -  MediaService: ${methodName}`);
+        // });
     }
 
     startDiscovery() {

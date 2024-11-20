@@ -20,7 +20,7 @@
     "node-uuid": "1.4.8",
     "simple-node-logger": "21.8.12",
     "soap": "1.1.5",
-    "xml2js": "0.4.23",
-    "yaml": "2.5.1"
+    "xml2js": "0.6.2",
+    "yaml": "2.6.1"
   }
 }
