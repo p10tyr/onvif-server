@@ -18,7 +18,7 @@
     "argparse": "2.0.1",
     "node-tcp-proxy": "0.0.28",
     "node-uuid": "1.4.8",
-    "simple-node-logger": "file:../../submodules/simple-node-logger",
+    "simple-node-logger": "file:./submodules/simple-node-logger",
     "soap": "1.1.5",
     "xml2js": "0.6.2",
     "yaml": "2.6.1"
