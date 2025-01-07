@@ -1,6 +1,7 @@
 const YAML = require('yaml');
 const fs = require('fs');
 const { execSync } = require('child_process');
+const { exit } = require()
 
 const { getIp4FromMac, generateUUIDv4, generateNetworkMac } = require('./net-tools')
 
@@ -22,7 +23,7 @@ function readConfig(logger, configFile) {
     try {
         config = YAML.parse(configData);
     } catch (error) {
-        logger.info('Failed to read config, invalid yaml syntax.')
+        logger.info('Failed to read config, invalid yaml syntax.');
         exit(-1);
     }
 
